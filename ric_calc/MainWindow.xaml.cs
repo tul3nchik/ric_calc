@@ -1,4 +1,5 @@
 ﻿using Ghostscript.NET;
+using Microsoft.Data.Sqlite;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -17,9 +18,6 @@ using System.Windows.Shapes;
 
 namespace ric_calc
 {
-    /// <summary>
-    /// Логика взаимодействия для MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public string filename;
@@ -32,6 +30,7 @@ namespace ric_calc
         public int colorUnder45Pages = 0;
         public int colorOver45Pages = 0;
         public int color90Pages = 0;
+        public string paperType;
 
 
         public MainWindow()
@@ -67,12 +66,22 @@ namespace ric_calc
             await Task.Run(() => calcBookCost());
         }
 
+        public double priceCalc(int pbw, int p15, int pu45, int po45, int p90, string pT)
+        {
+            double price = 0.0;
+
+
+
+            return price;
+        }
+
         public void calcBookCost()
         {
-            //Функция подсчёта книги
+            //блок расчёта цветных и ч/б страниц
             string inputFile = @filename;
             pages = GhostscriptPdfInfo.GetInkCoverage(inputFile);
 
+            //цикл переборки чб страниц и цветных (с последующей сортировкой по проценту заливки)
             foreach (KeyValuePair<int, GhostscriptPageInkCoverage> kvp in pages)
             {
                 pic = kvp.Value;
@@ -92,15 +101,44 @@ namespace ric_calc
                     if (coveragePercentage > 45.0 && coveragePercentage <= 90.0) colorOver45Pages += 1;
                     if (coveragePercentage > 90.0) color90Pages += 1;
                 }
-                Dispatcher.Invoke(() => calcOutput.Text += "\nСтраница: " + pic.Page + " Заливка: " + coveragePercentage + "%\nC: " + C + " M: " + M + " Y: " + Y + " K: " + K + "\n");
+                //вывод постраничного отчёта
+                Dispatcher.Invoke(() => calcOutput.Text += "Страница: " + pic.Page + " Заливка: " + coveragePercentage + "%\nC: " + C + " M: " + M + " Y: " + Y + " K: " + K + "\n");
                 coveragePercentage = 0.0;
             }
-            Dispatcher.Invoke(() => calcOutput.Text += "\nЧБ: " + bwPages + " 15%: " +
-                color15Pages + "\nдо 45%: " + colorUnder45Pages + " больше 45%: " +
-                colorOver45Pages + " 90% заливки: " + color90Pages + "\nCтраниц всего: " + pages.Count);
+
+            priceCalc(bwPages, color15Pages, colorUnder45Pages, colorOver45Pages, color90Pages, paperType);
+
+            //блок вывода информации
+            Dispatcher.Invoke(() => calcOutput.Text += "\nЧБ: " + bwPages + "\n15%: " +
+                color15Pages + "\nдо 45%: " + colorUnder45Pages + "\nбольше 45%: " +
+                colorOver45Pages + "\n90% заливки: " + color90Pages + "\nCтраниц всего: " + pages.Count);
             Dispatcher.Invoke(() => calcFile.IsEnabled = true);
             Dispatcher.Invoke(() => calcFile.Content = "Рассчитать");
             bwPages = color15Pages = colorUnder45Pages = colorOver45Pages = color90Pages = 0;
+        }
+
+        private void aFourCB_Checked(object sender, RoutedEventArgs e)
+        {
+            aFiveCB.IsEnabled = false;
+            paperType = "a4";
+        }
+
+        private void aFiveCB_Unchecked(object sender, RoutedEventArgs e)
+        {
+            aFourCB.IsEnabled = true;
+            paperType = "none";
+        }
+
+        private void aFiveCB_Checked(object sender, RoutedEventArgs e)
+        {
+            aFourCB.IsEnabled = false;
+            paperType = "a5";
+        }
+
+        private void aFourCB_Unchecked(object sender, RoutedEventArgs e)
+        {
+            aFiveCB.IsEnabled = true;
+            paperType = "none";
         }
     }
 }
