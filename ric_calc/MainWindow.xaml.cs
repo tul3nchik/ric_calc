@@ -30,7 +30,7 @@ namespace ric_calc
         public int bwPages = 0;
         public int color15Pages = 0;
         public int colorUnder45Pages = 0;
-        public int coloroOver45Pages = 0;
+        public int colorOver45Pages = 0;
         public int color90Pages = 0;
 
 
@@ -73,32 +73,34 @@ namespace ric_calc
             string inputFile = @filename;
             pages = GhostscriptPdfInfo.GetInkCoverage(inputFile);
 
-            var C = pages[pic.Page].C;
-            var M = pages[pic.Page].M;
-            var Y = pages[pic.Page].Y;
-            var K = pages[pic.Page].K;
-
             foreach (KeyValuePair<int, GhostscriptPageInkCoverage> kvp in pages)
             {
                 pic = kvp.Value;
-                Dispatcher.Invoke(() => calcOutput.Text += "\nСтраница: " + pic.Page + "\nCyan: " + pages[pic.Page].C + " Magenta: " + pages[pic.Page].M + "\nYellow: " + pages[pic.Page].Y + " Key (black): " + pages[pic.Page].K + "\n");
 
+                var C = pages[pic.Page].C;
+                var M = pages[pic.Page].M;
+                var Y = pages[pic.Page].Y;
+                var K = pages[pic.Page].K;
+                var coveragePercentage = 0.0;
                 if (C == M && M == Y && K == Y) bwPages += 1;
+                else if (C == 0.0 && M == 0.0 && Y == 0.0) bwPages += 1;
                 else
                 {
-                    bwPages += C == 0.0 && M == 0.0 && Y == 0.0 ? 1 : 0;
-                    color15Pages += C >= 0.1 && M >= 0.1 && Y >= 0.1 && C <= 15.0 && M <= 15.0 && Y <= 15.0 ? 1 : 0;
-                    colorUnder45Pages += C >= 15.1 && M >= 15.1 && Y >= 15.1 && C <= 45.0 && M <= 45.0 && Y <= 45.0 ? 1 : 0;
-                    coloroOver45Pages += C >= 45.1 && M >= 45.1 && Y >= 45.1 && C <= 89.9 && M <= 89.9 && Y <= 89.9 ? 1 : 0;
-                    color90Pages += C >= 90.0 && M >= 90.0 && Y >= 90.0 && C <= 100.0 && M <= 100.0 && Y <= 100.0 ? 1 : 0;
+                    coveragePercentage = (C + M + Y) / 3;
+                    if (coveragePercentage <= 15.0) color15Pages += 1;
+                    if (coveragePercentage > 15.0 && coveragePercentage <= 45.0) colorUnder45Pages += 1;
+                    if (coveragePercentage > 45.0 && coveragePercentage <= 90.0) colorOver45Pages += 1;
+                    if (coveragePercentage > 90.0) color90Pages += 1;
                 }
+                Dispatcher.Invoke(() => calcOutput.Text += "\nСтраница: " + pic.Page + " Заливка: " + coveragePercentage + "%\nC: " + C + " M: " + M + " Y: " + Y + " K: " + K + "\n");
+                coveragePercentage = 0.0;
             }
             Dispatcher.Invoke(() => calcOutput.Text += "\nЧБ: " + bwPages + " 15%: " +
                 color15Pages + "\nдо 45%: " + colorUnder45Pages + " больше 45%: " +
-                coloroOver45Pages + " 90% заливки: " + color90Pages + "\nCтраниц всего: " + pages.Count);
+                colorOver45Pages + " 90% заливки: " + color90Pages + "\nCтраниц всего: " + pages.Count);
             Dispatcher.Invoke(() => calcFile.IsEnabled = true);
             Dispatcher.Invoke(() => calcFile.Content = "Рассчитать");
-            bwPages = color15Pages = colorUnder45Pages = coloroOver45Pages = color90Pages = 0;
+            bwPages = color15Pages = colorUnder45Pages = colorOver45Pages = color90Pages = 0;
         }
     }
 }
