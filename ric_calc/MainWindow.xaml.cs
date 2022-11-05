@@ -42,7 +42,7 @@ namespace ric_calc
         private void openFile_Click(object sender, RoutedEventArgs e)
         {
             //Функция открытия файла
-            chsFileDialog.Filter = "Файл PDF (*.pdf)|*.pdf|Все файлы (*.*)|*.*";
+            chsFileDialog.Filter = "Файл PDF (*.pdf)|*.pdf";
             chsFileDialog.FilterIndex = 2;
             chsFileDialog.RestoreDirectory = true;
 
@@ -73,36 +73,24 @@ namespace ric_calc
             string inputFile = @filename;
             pages = GhostscriptPdfInfo.GetInkCoverage(inputFile);
 
+            var C = pages[pic.Page].C;
+            var M = pages[pic.Page].M;
+            var Y = pages[pic.Page].Y;
+            var K = pages[pic.Page].K;
+
             foreach (KeyValuePair<int, GhostscriptPageInkCoverage> kvp in pages)
             {
                 pic = kvp.Value;
-                Dispatcher.Invoke(() => calcOutput.Text +="\nСтраница: " + pic.Page + "\nCyan: " + pages[pic.Page].C + " Magenta: " + pages[pic.Page].M + "\nYellow: " + pages[pic.Page].Y + " Key (black): " + pages[pic.Page].K + "\n");
+                Dispatcher.Invoke(() => calcOutput.Text += "\nСтраница: " + pic.Page + "\nCyan: " + pages[pic.Page].C + " Magenta: " + pages[pic.Page].M + "\nYellow: " + pages[pic.Page].Y + " Key (black): " + pages[pic.Page].K + "\n");
 
-                if (pages[pic.Page].C == pages[pic.Page].M &&
-                    pages[pic.Page].M == pages[pic.Page].Y &&
-                    pages[pic.Page].K == pages[pic.Page].Y) bwPages += 1;
+                if (C == M && M == Y && K == Y) bwPages += 1;
                 else
                 {
-                    bwPages +=
-                        pages[pic.Page].C == 0.0 && pages[pic.Page].M == 0.0 && pages[pic.Page].Y == 0.0
-                        ? 1 : 0;
-
-                    color15Pages +=
-                        pages[pic.Page].C >= 0.1 && pages[pic.Page].M >= 0.1 && pages[pic.Page].Y >= 0.1 &&
-                        pages[pic.Page].C <= 15.0 && pages[pic.Page].M <= 15.0 && pages[pic.Page].Y <= 15.0
-                        ? 1 : 0;
-                    colorUnder45Pages +=
-                        pages[pic.Page].C >= 15.1 && pages[pic.Page].M >= 15.1 && pages[pic.Page].Y >= 15.1 &&
-                        pages[pic.Page].C <= 45.0 && pages[pic.Page].M <= 45.0 && pages[pic.Page].Y <= 45.0
-                        ? 1 : 0;
-                    coloroOver45Pages +=
-                        pages[pic.Page].C >= 45.1 && pages[pic.Page].M >= 45.1 && pages[pic.Page].Y >= 45.1 &&
-                        pages[pic.Page].C <= 89.9 && pages[pic.Page].M <= 89.9 && pages[pic.Page].Y <= 89.9
-                        ? 1 : 0;
-                    color90Pages +=
-                        pages[pic.Page].C >= 90.0 && pages[pic.Page].M >= 90.0 && pages[pic.Page].Y >= 90.0 &&
-                        pages[pic.Page].C <= 100.0 && pages[pic.Page].M <= 100.0 && pages[pic.Page].Y <= 100.0
-                        ? 1 : 0;
+                    bwPages += C == 0.0 && M == 0.0 && Y == 0.0 ? 1 : 0;
+                    color15Pages += C >= 0.1 && M >= 0.1 && Y >= 0.1 && C <= 15.0 && M <= 15.0 && Y <= 15.0 ? 1 : 0;
+                    colorUnder45Pages += C >= 15.1 && M >= 15.1 && Y >= 15.1 && C <= 45.0 && M <= 45.0 && Y <= 45.0 ? 1 : 0;
+                    coloroOver45Pages += C >= 45.1 && M >= 45.1 && Y >= 45.1 && C <= 89.9 && M <= 89.9 && Y <= 89.9 ? 1 : 0;
+                    color90Pages += C >= 90.0 && M >= 90.0 && Y >= 90.0 && C <= 100.0 && M <= 100.0 && Y <= 100.0 ? 1 : 0;
                 }
             }
             Dispatcher.Invoke(() => calcOutput.Text += "\nЧБ: " + bwPages + " 15%: " +
