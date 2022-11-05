@@ -15,5 +15,6 @@
         <Button x:Name="openFile" Content="Открыть" Height="25" Width="90" HorizontalAlignment="Left" Margin="25,110,0,0" VerticalAlignment="Top" FontSize="14" Click="openFile_Click"/>
         <Button x:Name="calcFile" Content="Рассчитать" Height="25" Width="90" HorizontalAlignment="Left" Margin="125,110,0,0" VerticalAlignment="Top" FontSize="14" IsEnabled="False" Click="calcFile_Click"/>
         <TextBox IsReadOnly="True" ScrollViewer.CanContentScroll="True" Width="350" Height="150"  x:Name="calcOutput" HorizontalAlignment="Left" Margin="25,150,0,0" VerticalAlignment="Top" FontSize="14"/>
+        <ProgressBar Visibility="Hidden" x:Name="progressBarUIElem" HorizontalAlignment="Left" Height="25" Margin="230,110,0,0" VerticalAlignment="Top" Width="300"/>
     </Grid>
 </Window>
