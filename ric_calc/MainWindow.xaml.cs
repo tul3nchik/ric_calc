@@ -57,8 +57,8 @@ namespace ric_calc
         private void calcFile_Click(object sender, RoutedEventArgs e)
         {
             calcOutput.Text = "";
-            progressBarUIElem.IsEnabled = true;
-            progressBarUIElem.Value = 0;
+            calcFile.IsEnabled = false;
+            calcFile.Content = "Загрузка...";
             executeCaclBook();
         }
 
@@ -72,7 +72,6 @@ namespace ric_calc
             //Функция подсчёта книги
             string inputFile = @filename;
             pages = GhostscriptPdfInfo.GetInkCoverage(inputFile);
-            Dispatcher.Invoke(() => progressBarUIElem.Maximum = Convert.ToInt32(pages));
 
             foreach (KeyValuePair<int, GhostscriptPageInkCoverage> kvp in pages)
             {
@@ -80,16 +79,7 @@ namespace ric_calc
                 Dispatcher.Invoke(() => calcOutput.Text +="\nСтраница: " + pic.Page + "\nCyan: " + pages[pic.Page].C + " Magenta: " + pages[pic.Page].M + "\nYellow: " + pages[pic.Page].Y + " Key (black): " + pages[pic.Page].K + "\n");
 
                 if (pages[pic.Page].C == pages[pic.Page].M &&
-                    pages[pic.Page].C == pages[pic.Page].Y &&
-                    pages[pic.Page].C == pages[pic.Page].K &&
-                    pages[pic.Page].M == pages[pic.Page].C &&
                     pages[pic.Page].M == pages[pic.Page].Y &&
-                    pages[pic.Page].M == pages[pic.Page].K &&
-                    pages[pic.Page].Y == pages[pic.Page].C &&
-                    pages[pic.Page].Y == pages[pic.Page].M &&
-                    pages[pic.Page].Y == pages[pic.Page].K &&
-                    pages[pic.Page].K == pages[pic.Page].C &&
-                    pages[pic.Page].K == pages[pic.Page].M &&
                     pages[pic.Page].K == pages[pic.Page].Y) bwPages += 1;
                 else
                 {
@@ -114,11 +104,13 @@ namespace ric_calc
                         pages[pic.Page].C <= 100.0 && pages[pic.Page].M <= 100.0 && pages[pic.Page].Y <= 100.0
                         ? 1 : 0;
                 }
-                Dispatcher.Invoke(() => calcOutput.Text += "\nЧБ: " + bwPages + " 15%: " +
-                    color15Pages + "\nдо 45%: " + colorUnder45Pages + " больше 45%: " +
-                    coloroOver45Pages + " 90% заливки: " + color90Pages + "\nCтраниц всего: " + pages.Count);
-
             }
+            Dispatcher.Invoke(() => calcOutput.Text += "\nЧБ: " + bwPages + " 15%: " +
+                color15Pages + "\nдо 45%: " + colorUnder45Pages + " больше 45%: " +
+                coloroOver45Pages + " 90% заливки: " + color90Pages + "\nCтраниц всего: " + pages.Count);
+            Dispatcher.Invoke(() => calcFile.IsEnabled = true);
+            Dispatcher.Invoke(() => calcFile.Content = "Рассчитать");
+            bwPages = color15Pages = colorUnder45Pages = coloroOver45Pages = color90Pages = 0;
         }
     }
 }

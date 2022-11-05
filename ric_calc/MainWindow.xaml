@@ -16,5 +16,8 @@
         <Button x:Name="calcFile" Content="Рассчитать" Height="25" Width="90" HorizontalAlignment="Left" Margin="125,110,0,0" VerticalAlignment="Top" FontSize="14" IsEnabled="False" Click="calcFile_Click"/>
         <TextBox IsReadOnly="True" ScrollViewer.CanContentScroll="True" Width="350" Height="150"  x:Name="calcOutput" HorizontalAlignment="Left" Margin="25,150,0,0" VerticalAlignment="Top" FontSize="14"/>
         <ProgressBar Visibility="Hidden" x:Name="progressBarUIElem" HorizontalAlignment="Left" Height="25" Margin="230,110,0,0" VerticalAlignment="Top" Width="300"/>
+        <CheckBox x:Name="aFourCB" FontSize="14" Content="А4" HorizontalAlignment="Left" Height="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="325,110,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="aFiveCB" FontSize="14" Content="А5" HorizontalAlignment="Left" Height="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="370,110,0,0" VerticalAlignment="Top"/>
+        <Label Content="Формат книги:" HorizontalAlignment="Left" Margin="220,107,0,0" VerticalAlignment="Top" FontSize="14"/>
     </Grid>
 </Window>
