@@ -5,19 +5,21 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ric_calc"
         mc:Ignorable="d"
-        Title="MainWindow" 
-        Height="350" Width="600"
-        MinHeight="350" MinWidth="600"
-        MaxHeight="350" MaxWidth="600">
+        Title="Расчёт стоимости печатного издания РИЦ" 
+        Height="370" Width="600"
+        MinHeight="370" MinWidth="600"
+        MaxHeight="370" MaxWidth="600">
     <Grid>
         <Label Content="Расчёт стоимости печати" HorizontalAlignment="Left" Margin="20,25,0,0" VerticalAlignment="Top" FontSize="18"/>
         <Label x:Name="chsFileLabel" Content="Выберите файл" HorizontalAlignment="Left" Margin="20,70,0,0" VerticalAlignment="Top" FontSize="14"/>
         <Button x:Name="openFile" Content="Открыть" Height="25" Width="90" HorizontalAlignment="Left" Margin="25,110,0,0" VerticalAlignment="Top" FontSize="14" Click="openFile_Click"/>
         <Button x:Name="calcFile" Content="Рассчитать" Height="25" Width="90" HorizontalAlignment="Left" Margin="125,110,0,0" VerticalAlignment="Top" FontSize="14" IsEnabled="False" Click="calcFile_Click"/>
-        <TextBox IsReadOnly="True" ScrollViewer.CanContentScroll="True" Width="350" Height="150"  x:Name="calcOutput" HorizontalAlignment="Left" Margin="25,150,0,0" VerticalAlignment="Top" FontSize="14"/>
+        <TextBox IsReadOnly="True" ScrollViewer.CanContentScroll="True" Width="355" Height="145"  x:Name="calcOutput" HorizontalAlignment="Left" Margin="25,180,0,0" VerticalAlignment="Top" FontSize="14"/>
         <ProgressBar Visibility="Hidden" x:Name="progressBarUIElem" HorizontalAlignment="Left" Height="25" Margin="230,110,0,0" VerticalAlignment="Top" Width="300"/>
         <CheckBox x:Name="aFourCB" FontSize="14" Content="А4" HorizontalAlignment="Left" Height="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="325,110,0,0" VerticalAlignment="Top" Checked="aFourCB_Checked" Unchecked="aFourCB_Unchecked"/>
         <CheckBox x:Name="aFiveCB" FontSize="14" Content="А5" HorizontalAlignment="Left" Height="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="370,110,0,0" VerticalAlignment="Top" Checked="aFiveCB_Checked" Unchecked="aFiveCB_Unchecked"/>
         <Label Content="Формат книги:" HorizontalAlignment="Left" Margin="220,107,0,0" VerticalAlignment="Top" FontSize="14"/>
+        <TextBox x:Name="reportName" HorizontalAlignment="Left" Height="25" Margin="25,145,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="250"/>
+        <Button x:Name="excelOutput" Content="Сохранить" Height="25" Width="90" HorizontalAlignment="Left" Margin="290,145,0,0" VerticalAlignment="Top" FontSize="14"/>
     </Grid>
 </Window>

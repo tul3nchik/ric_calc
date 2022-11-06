@@ -75,7 +75,26 @@ namespace ric_calc
 
         async public void executeCalcBook()
         {
-            await Task.Run(() => calcBookCost());
+            await Task.Run(() => calcBookCoverage());
+
+            //проверка на выбранный тип бумаги
+            if (paperType != "none")
+            {
+                totalPrice = priceCalc(bwPages, color15Pages, colorUnder45Pages, colorOver45Pages, color90Pages, paperType);
+                MessageBox.Show("Итоговая цена: " + totalPrice + " руб.");
+            }
+            else
+            {
+                totalPrice = 0.0;
+            }
+            bwPages = color15Pages = colorUnder45Pages = colorOver45Pages = color90Pages = 0;
+
+            //блок вывода информации
+            Dispatcher.Invoke(() => calcOutput.Text += "\nЧБ: " + bwPages + "\n15%: " +
+                color15Pages + "\nдо 45%: " + colorUnder45Pages + "\nбольше 45%: " +
+                colorOver45Pages + "\n90% заливки: " + color90Pages + "\nCтраниц всего: " + pages.Count);
+            Dispatcher.Invoke(() => calcFile.IsEnabled = true);
+            Dispatcher.Invoke(() => calcFile.Content = "Рассчитать");
         }
 
         public double priceCalc(int pbw, int p15, int pu45, int po45, int p90, string pT)
@@ -113,7 +132,7 @@ namespace ric_calc
             return price;
         }
 
-        public void calcBookCost()
+        public void calcBookCoverage()
         {
             //блок расчёта цветных и ч/б страниц
             string inputFile = @filename;
@@ -143,23 +162,6 @@ namespace ric_calc
                 Dispatcher.Invoke(() => calcOutput.Text += "Страница: " + pic.Page + " Заливка: " + coveragePercentage + "%\nC: " + C + " M: " + M + " Y: " + Y + " K: " + K + "\n");
                 coveragePercentage = 0.0;
             }
-            if (paperType != "none")
-            {
-                totalPrice = priceCalc(bwPages, color15Pages, colorUnder45Pages, colorOver45Pages, color90Pages, paperType);
-                MessageBox.Show("Итоговая цена: " + totalPrice + " руб.");
-            }
-            else
-            {
-                totalPrice = 0.0;
-            }
-
-            //блок вывода информации
-            Dispatcher.Invoke(() => calcOutput.Text += "\nЧБ: " + bwPages + "\n15%: " +
-                color15Pages + "\nдо 45%: " + colorUnder45Pages + "\nбольше 45%: " +
-                colorOver45Pages + "\n90% заливки: " + color90Pages + "\nCтраниц всего: " + pages.Count);
-            Dispatcher.Invoke(() => calcFile.IsEnabled = true);
-            Dispatcher.Invoke(() => calcFile.Content = "Рассчитать");
-            bwPages = color15Pages = colorUnder45Pages = colorOver45Pages = color90Pages = 0;
         }
 
         private void aFourCB_Checked(object sender, RoutedEventArgs e)
@@ -185,5 +187,6 @@ namespace ric_calc
             aFiveCB.IsEnabled = true;
             paperType = "none";
         }
+        
     }
 }
