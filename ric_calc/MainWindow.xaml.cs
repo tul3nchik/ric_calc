@@ -87,7 +87,6 @@ namespace ric_calc
             {
                 totalPrice = 0.0;
             }
-            bwPages = color15Pages = colorUnder45Pages = colorOver45Pages = color90Pages = 0;
 
             //блок вывода информации
             Dispatcher.Invoke(() => calcOutput.Text += "\nЧБ: " + bwPages + "\n15%: " +
@@ -95,6 +94,8 @@ namespace ric_calc
                 colorOver45Pages + "\n90% заливки: " + color90Pages + "\nCтраниц всего: " + pages.Count);
             Dispatcher.Invoke(() => calcFile.IsEnabled = true);
             Dispatcher.Invoke(() => calcFile.Content = "Рассчитать");
+
+            bwPages = color15Pages = colorUnder45Pages = colorOver45Pages = color90Pages = 0;
         }
 
         public double priceCalc(int pbw, int p15, int pu45, int po45, int p90, string pT)
@@ -137,6 +138,7 @@ namespace ric_calc
             //блок расчёта цветных и ч/б страниц
             string inputFile = @filename;
             pages = GhostscriptPdfInfo.GetInkCoverage(inputFile);
+            var coveragePercentage = 0.0;
 
             //цикл переборки чб страниц и цветных (с последующей сортировкой по проценту заливки)
             foreach (KeyValuePair<int, GhostscriptPageInkCoverage> kvp in pages)
@@ -147,7 +149,6 @@ namespace ric_calc
                 var M = pages[pic.Page].M;
                 var Y = pages[pic.Page].Y;
                 var K = pages[pic.Page].K;
-                var coveragePercentage = 0.0;
                 if (C == M && M == Y && K == Y) bwPages += 1;
                 else if (C == 0.0 && M == 0.0 && Y == 0.0) bwPages += 1;
                 else
@@ -160,8 +161,8 @@ namespace ric_calc
                 }
                 //вывод постраничного отчёта
                 Dispatcher.Invoke(() => calcOutput.Text += "Страница: " + pic.Page + " Заливка: " + coveragePercentage + "%\nC: " + C + " M: " + M + " Y: " + Y + " K: " + K + "\n");
-                coveragePercentage = 0.0;
             }
+            coveragePercentage = 0.0;
         }
 
         private void aFourCB_Checked(object sender, RoutedEventArgs e)
