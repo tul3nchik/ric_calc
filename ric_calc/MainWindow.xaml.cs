@@ -1,8 +1,9 @@
 ﻿using Ghostscript.NET;
-using Microsoft.Data.Sqlite;
 using Microsoft.Win32;
 using System;
+using System.Data.SQLite;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,21 +17,32 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+
 namespace ric_calc
 {
     public partial class MainWindow : Window
     {
-        public string filename;
         OpenFileDialog chsFileDialog = new OpenFileDialog();
         GhostscriptPageInkCoverage pic;
         Dictionary<int, GhostscriptPageInkCoverage> pages;
+        DataTable dt = new DataTable();
+        SQLiteConnection sqlite;
+        SQLiteCommand cmd;
 
+        public string filename;
         public int bwPages = 0;
         public int color15Pages = 0;
         public int colorUnder45Pages = 0;
         public int colorOver45Pages = 0;
         public int color90Pages = 0;
-        public string paperType;
+        public int BWPC = 0;
+        public int C15C = 0;
+        public int CU45C = 0;
+        public int CO45C = 0;
+        public int C90C = 0;
+        public string paperType="none";
+        public double price = 0.0;
+        public double totalPrice = 0;
 
 
         public MainWindow()
@@ -58,20 +70,46 @@ namespace ric_calc
             calcOutput.Text = "";
             calcFile.IsEnabled = false;
             calcFile.Content = "Загрузка...";
-            executeCaclBook();
+            executeCalcBook();
         }
 
-        async public void executeCaclBook()
+        async public void executeCalcBook()
         {
             await Task.Run(() => calcBookCost());
         }
 
         public double priceCalc(int pbw, int p15, int pu45, int po45, int p90, string pT)
         {
-            double price = 0.0;
-
-
-
+            //блок подключения к бд, и вытяжки из неё данных
+            sqlite = new SQLiteConnection(@"Data Source = paperPrice.db");
+            sqlite.Open();
+            cmd = sqlite.CreateCommand();
+            cmd.CommandText = "SELECT priceBW, price15, priceU45, priceO45, price90 FROM price_list WHERE paperType = '" + paperType + "';";
+            try
+            {
+                SQLiteDataReader rdr = cmd.ExecuteReader();
+                while (rdr.Read())
+                {
+                    BWPC = Convert.ToInt32(rdr[0]);
+                    C15C = Convert.ToInt32(rdr[1]);
+                    CU45C = Convert.ToInt32(rdr[2]);
+                    CO45C = Convert.ToInt32(rdr[3]);
+                    C90C = Convert.ToInt32(rdr[4]);
+                }
+                rdr.Close();
+            }
+            catch (SQLiteException ex)
+            {
+                MessageBox.Show(""+ex.Message+"\n"+ex.HelpLink+"\n"+ex.Data);
+            }
+            //блок подсчёта
+            sqlite.Close();
+            price = (bwPages * BWPC) +
+                (color15Pages * C15C) +
+                (colorUnder45Pages * CU45C) +
+                (colorOver45Pages * CO45C) +
+                (color90Pages * C90C);
+            //строка с возвращением итоговой цены
             return price;
         }
 
@@ -105,8 +143,15 @@ namespace ric_calc
                 Dispatcher.Invoke(() => calcOutput.Text += "Страница: " + pic.Page + " Заливка: " + coveragePercentage + "%\nC: " + C + " M: " + M + " Y: " + Y + " K: " + K + "\n");
                 coveragePercentage = 0.0;
             }
-
-            priceCalc(bwPages, color15Pages, colorUnder45Pages, colorOver45Pages, color90Pages, paperType);
+            if (paperType != "none")
+            {
+                totalPrice = priceCalc(bwPages, color15Pages, colorUnder45Pages, colorOver45Pages, color90Pages, paperType);
+                MessageBox.Show("Итоговая цена: " + totalPrice + " руб.");
+            }
+            else
+            {
+                totalPrice = 0.0;
+            }
 
             //блок вывода информации
             Dispatcher.Invoke(() => calcOutput.Text += "\nЧБ: " + bwPages + "\n15%: " +
