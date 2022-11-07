@@ -22,27 +22,26 @@ namespace ric_calc
 {
     public partial class MainWindow : Window
     {
-        OpenFileDialog chsFileDialog = new OpenFileDialog();
-        GhostscriptPageInkCoverage pic;
-        Dictionary<int, GhostscriptPageInkCoverage> pages;
-        DataTable dt = new DataTable();
-        SQLiteConnection sqlite;
-        SQLiteCommand cmd;
+        private readonly OpenFileDialog _selectFileDialog = new OpenFileDialog();
+        private GhostscriptPageInkCoverage _gsPageInkCoverage;
+        private Dictionary<int, GhostscriptPageInkCoverage> _gsPages;
+        private SQLiteConnection _sqliteCon;
+        private SQLiteCommand _sqliteCommand;
 
-        public string filename;
-        public int bwPages = 0;
-        public int color15Pages = 0;
-        public int colorUnder45Pages = 0;
-        public int colorOver45Pages = 0;
-        public int color90Pages = 0;
-        public int BWPC = 0;
-        public int C15C = 0;
-        public int CU45C = 0;
-        public int CO45C = 0;
-        public int C90C = 0;
-        public string paperType="none";
-        public double price = 0.0;
-        public double totalPrice = 0;
+        private string _filename;
+        private int _bwPages;
+        private int _color15Pages;
+        private int _colorUnder45Pages;
+        private int _colorOver45Pages;
+        private int _color90Pages;
+        private int _bwpc;
+        private int _c15C;
+        private int _cu45C;
+        private int _co45C;
+        private int _c90C;
+        private PaperType _paperType = PaperType.None;
+        private double _price;
+        private double _totalPrice;
 
 
         public MainWindow()
@@ -53,140 +52,144 @@ namespace ric_calc
         private void openFile_Click(object sender, RoutedEventArgs e)
         {
             //Функция открытия файла
-            chsFileDialog.Filter = "Файл PDF (*.pdf)|*.pdf";
-            chsFileDialog.FilterIndex = 2;
-            chsFileDialog.RestoreDirectory = true;
+            _selectFileDialog.Filter = "Файл PDF (*.pdf)|*.pdf";
+            _selectFileDialog.FilterIndex = 2;
+            _selectFileDialog.RestoreDirectory = true;
 
-            if (chsFileDialog.ShowDialog() == true)
+            if (_selectFileDialog.ShowDialog() == true)
             {
-                filename = chsFileDialog.FileName;
-                chsFileLabel.Content = filename;
-                calcFile.IsEnabled = true;
+                _filename = _selectFileDialog.FileName;
+                SelectFileLabel.Content = _filename;
+                CalcFile.IsEnabled = true;
             }
         }
 
         private void calcFile_Click(object sender, RoutedEventArgs e)
         {
-            calcOutput.Text = "";
-            calcFile.IsEnabled = false;
-            calcFile.Content = "Загрузка...";
-            executeCalcBook();
+            CalcOutput.Text = "";
+            CalcFile.IsEnabled = false;
+            CalcFile.Content = "Загрузка...";
+            ExecuteCalcBook();
         }
 
-        async public void executeCalcBook()
+        private async void ExecuteCalcBook()
         {
-            await Task.Run(() => calcBookCoverage());
+            await Task.Run(CalculateBookCoverage);
 
             //проверка на выбранный тип бумаги
-            if (paperType != "none")
+            if (_paperType != PaperType.None)
             {
-                totalPrice = priceCalc(bwPages, color15Pages, colorUnder45Pages, colorOver45Pages, color90Pages, paperType);
-                MessageBox.Show("Итоговая цена: " + totalPrice + " руб.");
+                _totalPrice = CalculatePrice();
+                MessageBox.Show($"Итоговая цена: {_totalPrice}руб.");
             }
             else
             {
-                totalPrice = 0.0;
+                _totalPrice = 0.0;
             }
 
             //блок вывода информации
-            Dispatcher.Invoke(() => calcOutput.Text += "\nЧБ: " + bwPages + "\n15%: " +
-                color15Pages + "\nдо 45%: " + colorUnder45Pages + "\nбольше 45%: " +
-                colorOver45Pages + "\n90% заливки: " + color90Pages + "\nCтраниц всего: " + pages.Count);
-            Dispatcher.Invoke(() => calcFile.IsEnabled = true);
-            Dispatcher.Invoke(() => calcFile.Content = "Рассчитать");
+            CalcOutput.Text += $"\nЧБ: {_bwPages}\n" +
+                               $"15%: {_color15Pages}\n" +
+                               $"до 45%: {_colorUnder45Pages}\n" +
+                               $"больше 45%: {_colorOver45Pages}\n" +
+                               $"90% заливки: {_color90Pages}\n" +
+                               $"Страниц всего: {_gsPages.Count}";
+            
+            CalcFile.IsEnabled = true;
+            CalcFile.Content = "Рассчитать";
 
-            bwPages = color15Pages = colorUnder45Pages = colorOver45Pages = color90Pages = 0;
+            _bwPages = _color15Pages = _colorUnder45Pages = _colorOver45Pages = _color90Pages = 0;
         }
 
-        public double priceCalc(int pbw, int p15, int pu45, int po45, int p90, string pT)
+        private double CalculatePrice()
         {
             //блок подключения к бд, и вытяжки из неё данных
-            sqlite = new SQLiteConnection(@"Data Source = paperPrice.db");
-            sqlite.Open();
-            cmd = sqlite.CreateCommand();
-            cmd.CommandText = "SELECT priceBW, price15, priceU45, priceO45, price90 FROM price_list WHERE paperType = '" + paperType + "';";
+            _sqliteCon = new SQLiteConnection(@"Data Source = paperPrice.db");
+            _sqliteCon.Open();
+            _sqliteCommand = _sqliteCon.CreateCommand();
+            _sqliteCommand.CommandText = $"SELECT priceBW, price15, priceU45, priceO45, price90 FROM price_list WHERE paperType = '{_paperType.ToString()}';";
             try
             {
-                SQLiteDataReader rdr = cmd.ExecuteReader();
+                var rdr = _sqliteCommand.ExecuteReader();
                 while (rdr.Read())
                 {
-                    BWPC = Convert.ToInt32(rdr[0]);
-                    C15C = Convert.ToInt32(rdr[1]);
-                    CU45C = Convert.ToInt32(rdr[2]);
-                    CO45C = Convert.ToInt32(rdr[3]);
-                    C90C = Convert.ToInt32(rdr[4]);
+                    _bwpc = Convert.ToInt32(rdr[0]);
+                    _c15C = Convert.ToInt32(rdr[1]);
+                    _cu45C = Convert.ToInt32(rdr[2]);
+                    _co45C = Convert.ToInt32(rdr[3]);
+                    _c90C = Convert.ToInt32(rdr[4]);
                 }
                 rdr.Close();
             }
             catch (SQLiteException ex)
             {
-                MessageBox.Show(""+ex.Message+"\n"+ex.HelpLink+"\n"+ex.Data);
+                MessageBox.Show($"{ex.Message}\n{ex.HelpLink}\n{ex.Data}");
             }
             //блок подсчёта
-            sqlite.Close();
-            price = (bwPages * BWPC) +
-                (color15Pages * C15C) +
-                (colorUnder45Pages * CU45C) +
-                (colorOver45Pages * CO45C) +
-                (color90Pages * C90C);
+            _sqliteCon.Close();
+            _price = (_bwPages * _bwpc) +
+                (_color15Pages * _c15C) +
+                (_colorUnder45Pages * _cu45C) +
+                (_colorOver45Pages * _co45C) +
+                (_color90Pages * _c90C);
             //строка с возвращением итоговой цены
-            return price;
+            return _price;
         }
 
-        public void calcBookCoverage()
+        private void CalculateBookCoverage()
         {
             //блок расчёта цветных и ч/б страниц
-            string inputFile = @filename;
-            pages = GhostscriptPdfInfo.GetInkCoverage(inputFile);
+            var inputFile = _filename;
+            _gsPages = GhostscriptPdfInfo.GetInkCoverage(inputFile);
             var coveragePercentage = 0.0;
 
             //цикл переборки чб страниц и цветных (с последующей сортировкой по проценту заливки)
-            foreach (KeyValuePair<int, GhostscriptPageInkCoverage> kvp in pages)
+            foreach (var kvp in _gsPages)
             {
-                pic = kvp.Value;
+                _gsPageInkCoverage = kvp.Value;
 
-                var C = pages[pic.Page].C;
-                var M = pages[pic.Page].M;
-                var Y = pages[pic.Page].Y;
-                var K = pages[pic.Page].K;
-                if (C == M && M == Y && K == Y) bwPages += 1;
-                else if (C == 0.0 && M == 0.0 && Y == 0.0) bwPages += 1;
+                var C = _gsPages[_gsPageInkCoverage.Page].C;
+                var M = _gsPages[_gsPageInkCoverage.Page].M;
+                var Y = _gsPages[_gsPageInkCoverage.Page].Y;
+                var K = _gsPages[_gsPageInkCoverage.Page].K;
+                if (C == M && M == Y && Y == K) _bwPages += 1;
+                else if (C == 0.0 && M == 0.0 && Y == 0.0) _bwPages += 1;
                 else
                 {
                     coveragePercentage = (C + M + Y) / 3;
-                    if (coveragePercentage <= 15.0) color15Pages += 1;
-                    if (coveragePercentage > 15.0 && coveragePercentage <= 45.0) colorUnder45Pages += 1;
-                    if (coveragePercentage > 45.0 && coveragePercentage <= 90.0) colorOver45Pages += 1;
-                    if (coveragePercentage > 90.0) color90Pages += 1;
+                    if (coveragePercentage <= 15.0) _color15Pages += 1;
+                    if (coveragePercentage > 15.0 && coveragePercentage <= 45.0) _colorUnder45Pages += 1;
+                    if (coveragePercentage > 45.0 && coveragePercentage <= 90.0) _colorOver45Pages += 1;
+                    if (coveragePercentage > 90.0) _color90Pages += 1;
                 }
                 //вывод постраничного отчёта
-                Dispatcher.Invoke(() => calcOutput.Text += "Страница: " + pic.Page + " Заливка: " + coveragePercentage + "%\nC: " + C + " M: " + M + " Y: " + Y + " K: " + K + "\n");
+                CalcOutput.Text += $"Страница: {_gsPageInkCoverage.Page} Заливка: {coveragePercentage}%\n" +
+                                   $"C: {C} M: {M} Y: {Y} K: {K}\n";
             }
-            coveragePercentage = 0.0;
         }
 
         private void aFourCB_Checked(object sender, RoutedEventArgs e)
         {
-            aFiveCB.IsEnabled = false;
-            paperType = "a4";
+            AFiveCheckBox.IsEnabled = false;
+            _paperType = PaperType.A4;
         }
 
         private void aFiveCB_Unchecked(object sender, RoutedEventArgs e)
         {
-            aFourCB.IsEnabled = true;
-            paperType = "none";
+            AFourCheckBox.IsEnabled = true;
+            _paperType = PaperType.None;
         }
 
         private void aFiveCB_Checked(object sender, RoutedEventArgs e)
         {
-            aFourCB.IsEnabled = false;
-            paperType = "a5";
+            AFourCheckBox.IsEnabled = false;
+            _paperType = PaperType.A5;
         }
 
         private void aFourCB_Unchecked(object sender, RoutedEventArgs e)
         {
-            aFiveCB.IsEnabled = true;
-            paperType = "none";
+            AFiveCheckBox.IsEnabled = true;
+            _paperType = PaperType.None;
         }
         
     }

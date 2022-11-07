@@ -161,6 +161,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PaperType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
