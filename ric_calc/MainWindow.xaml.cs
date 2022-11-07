@@ -39,7 +39,6 @@ namespace ric_calc
         private int _cu45C;
         private int _co45C;
         private int _c90C;
-        private PaperType _paperType = PaperType.None;
         private double _price;
         private double _totalPrice;
 
