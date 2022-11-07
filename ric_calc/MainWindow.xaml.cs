@@ -41,6 +41,7 @@ namespace ric_calc
         private int _c90C;
         private double _price;
         private double _totalPrice;
+        private string _paperType = "none";
 
 
         public MainWindow()
@@ -76,7 +77,7 @@ namespace ric_calc
             await Task.Run(CalculateBookCoverage);
 
             //проверка на выбранный тип бумаги
-            if (_paperType != PaperType.None)
+            if (_paperType != "none")
             {
                 _totalPrice = CalculatePrice();
                 MessageBox.Show($"Итоговая цена: {_totalPrice}руб.");
@@ -106,7 +107,7 @@ namespace ric_calc
             _sqliteCon = new SQLiteConnection(@"Data Source = paperPrice.db");
             _sqliteCon.Open();
             _sqliteCommand = _sqliteCon.CreateCommand();
-            _sqliteCommand.CommandText = $"SELECT priceBW, price15, priceU45, priceO45, price90 FROM price_list WHERE paperType = '{_paperType.ToString()}';";
+            _sqliteCommand.CommandText = $"SELECT priceBW, price15, priceU45, priceO45, price90 FROM price_list WHERE paperType = '{_paperType}';";
             try
             {
                 var rdr = _sqliteCommand.ExecuteReader();
@@ -162,33 +163,33 @@ namespace ric_calc
                     if (coveragePercentage > 90.0) _color90Pages += 1;
                 }
                 //вывод постраничного отчёта
-                CalcOutput.Text += $"Страница: {_gsPageInkCoverage.Page} Заливка: {coveragePercentage}%\n" +
-                                   $"C: {C} M: {M} Y: {Y} K: {K}\n";
+                Dispatcher.Invoke(() => CalcOutput.Text += $"Страница: {_gsPageInkCoverage.Page} Заливка: {coveragePercentage}%\n" +
+                                   $"C: {C} M: {M} Y: {Y} K: {K}\n");
             }
         }
 
         private void aFourCB_Checked(object sender, RoutedEventArgs e)
         {
             AFiveCheckBox.IsEnabled = false;
-            _paperType = PaperType.A4;
+            _paperType = "a4";
         }
 
         private void aFiveCB_Unchecked(object sender, RoutedEventArgs e)
         {
             AFourCheckBox.IsEnabled = true;
-            _paperType = PaperType.None;
+            _paperType = "none";
         }
 
         private void aFiveCB_Checked(object sender, RoutedEventArgs e)
         {
             AFourCheckBox.IsEnabled = false;
-            _paperType = PaperType.A5;
+            _paperType = "a5";
         }
 
         private void aFourCB_Unchecked(object sender, RoutedEventArgs e)
         {
             AFiveCheckBox.IsEnabled = true;
-            _paperType = PaperType.None;
+            _paperType = "none";
         }
         
     }
